@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 struct BMP_HEADER_{
     uint8_t signature[2];
