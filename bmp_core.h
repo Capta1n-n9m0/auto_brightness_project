@@ -19,7 +19,8 @@ struct DIB_HEADER_{
     uint32_t height;
     uint16_t n_color_planes;
     uint16_t bits_per_pixels;
-    uint8_t not_important[24];
+    //they are 40, not 24 bytes that we don't use in BITMAPV3INFOHEADER format
+    uint8_t not_important[40];
 } __attribute__((packed));
 typedef struct DIB_HEADER_ DIB_HEADER;
 
@@ -30,20 +31,20 @@ typedef char BIT_MASKS;
 typedef char COLOR_TABLE;
 
 struct PIXEL__{
-    uint8_t r, g, b, alpha;
-};
+    uint8_t a, b, g, r;
+} __attribute__((packed));
 union PIXEL_{
     struct PIXEL__ components;
     uint32_t value;
     uint8_t bytes[4];
-};
+} __attribute__((packed));
 typedef union PIXEL_ PIXEL;
 
 struct IMAGE_DATA_{
     uint32_t width, height;
     PIXEL **data;
-};
-typedef char IMAGE_DATA;
+} __attribute__((packed));
+typedef struct IMAGE_DATA_ IMAGE_DATA;
 
 /// not implemented
 typedef char COLOR_PROFILE;
