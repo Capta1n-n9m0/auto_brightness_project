@@ -7,4 +7,4 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(DEBUG)
 endif ()
 
-add_executable(auto_brightness_project main.c bmp_core.c bmp_core.h)
+add_executable(auto_brightness_project main.c bmp_core.c bmp_core.h auto_brightness.c auto_brightness.h)

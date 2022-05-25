@@ -104,6 +104,24 @@ int write_bmp_file(const char *filename, BMP_FILE *data){
     fclose(f);
     return 0;
 }
+BMP_FILE *copy_bmp_structure(const BMP_FILE *input){
+    BMP_FILE *res = calloc(1, sizeof(BMP_FILE));
+
+    res->bmpHeader = calloc(1, sizeof(BMP_HEADER));
+    *res->bmpHeader = *input->bmpHeader;
+    res->dibHeader = calloc(1, sizeof(DIB_HEADER));
+    *res->dibHeader = *input->dibHeader;
+    uint32_t width, height;
+    width = res->dibHeader->width;
+    height = res->dibHeader->height;
+    res->imageData = calloc(1, sizeof(IMAGE_DATA));
+    res->imageData->width = width;
+    res->imageData->height = height;
+    res->imageData->data = calloc(width*height, sizeof(PIXEL));
+    memcpy(res->imageData->data, input->imageData->data, width*height*sizeof(PIXEL));
+
+    return res;
+}
 void free_bmp_structure(BMP_FILE *bmpFile){
     if(bmpFile->bmpHeader) free(bmpFile->bmpHeader);
     if(bmpFile->dibHeader) free(bmpFile->dibHeader);

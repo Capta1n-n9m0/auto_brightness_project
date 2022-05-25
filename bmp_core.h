@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 struct BMP_HEADER_{
     uint8_t signature[2];
@@ -31,7 +32,7 @@ typedef char BIT_MASKS;
 typedef char COLOR_TABLE;
 
 struct PIXEL__{
-    uint8_t a, b, g, r;
+    uint8_t r, g, b, a;
 } __attribute__((packed));
 union PIXEL_{
     struct PIXEL__ components;
@@ -62,8 +63,8 @@ typedef struct BMP_FILE_ BMP_FILE;
 
 BMP_FILE *read_bmp_file(const char *filename);
 int write_bmp_file(const char *filename, BMP_FILE *data);
+BMP_FILE *copy_bmp_structure(const BMP_FILE *input);
 void free_bmp_structure(BMP_FILE *bmpFile);
-
 
 
 #endif //AUTO_BRIGHTNESS_PROJECT_BMP_CORE_H
