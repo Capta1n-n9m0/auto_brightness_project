@@ -10,17 +10,17 @@ struct BMP_HEADER_{
     uint32_t size;
     uint8_t application_reserved[4];
     uint32_t offset;
-};
+} __attribute__((packed));
 typedef struct BMP_HEADER_ BMP_HEADER;
 
 struct DIB_HEADER_{
     uint32_t header_size;
     uint32_t width;
     uint32_t height;
-    uint16_t c_color_planes;
+    uint16_t n_color_planes;
     uint16_t bits_per_pixels;
     uint8_t not_important[24];
-};
+} __attribute__((packed));
 typedef struct DIB_HEADER_ DIB_HEADER;
 
 /// not implemented

@@ -1,25 +1,15 @@
 #include "bmp_core.h"
 
-BMP_HEADER *_read_BMP_HEADER(FILE *f);
-DIB_HEADER *_read_DIB_HEADER(FILE *f);
+static BMP_HEADER *_read_BMP_HEADER(FILE *f);
+static DIB_HEADER *_read_DIB_HEADER(FILE *f);
 
-typedef uint8_t BYTE;
-
-BYTE read_byte(FILE *f){
-    BYTE res;
-    fread(&res, sizeof(BYTE), 1, f);
-    return res;
-}
-
-BMP_HEADER *_read_BMP_HEADER(FILE *f){
+static BMP_HEADER *_read_BMP_HEADER(FILE *f){
     BMP_HEADER *res = calloc(1, sizeof(BMP_HEADER));
     fseek(f, 0, SEEK_SET);
 
-    fread(res->signature, sizeof(uint8_t), 2, f);
-    fread(&res->size, sizeof(uint32_t), 1, f);
-    fread(res->application_reserved, sizeof(uint8_t), 4, f);
-    fread(&res->offset, sizeof(uint32_t), 1, f);
+    fread(res, sizeof(BMP_HEADER), 1, f);
 #ifdef DEBUG
+    printf("Reading BMP header\n");
     printf("Signature: %c%c\n", res->signature[0], res->signature[1]);
     printf("Size: %d\n", res->size);
     printf("Application bytes: 0x");
@@ -28,12 +18,31 @@ BMP_HEADER *_read_BMP_HEADER(FILE *f){
     }
     printf("\n");
     printf("Offset: %d\n", res->offset);
+    printf("\n");
 #endif
     return res;
 }
+static DIB_HEADER *_read_DIB_HEADER(FILE *f){
+    DIB_HEADER *res = calloc(1, sizeof(DIB_HEADER));
+    fseek(f, sizeof(BMP_HEADER), SEEK_SET);
 
-DIB_HEADER *_read_DIB_HEADER(FILE *f){
+    fread(res, sizeof(DIB_HEADER), 1, f);
+#ifdef DEBUG
+    printf("Reading DIB header\n");
+    printf("Header size: %d\n", res->header_size);
+    printf("Image width: %d\n", res->width);
+    printf("Image height: %d\n", res->height);
+    printf("Color planes: %d\n", res->n_color_planes);
+    printf("Bits per pixel: %d\n", res->bits_per_pixels);
+    printf("Other bytes: 0x");
+    for(int i = 0; i < 24; i++){
+        if(i%4 == 0 && i != 0) printf(" ");
+        printf("%02X", res->not_important[i]);
+    }
+    printf("\n\n");
+#endif
 
+    return res;
 }
 
 BMP_FILE *read_bmp_file(const char *filename){
@@ -44,8 +53,7 @@ BMP_FILE *read_bmp_file(const char *filename){
         exit(2);
     }
     result->bmpHeader = _read_BMP_HEADER(file);
-    //424D48C0 12000000 00004600
-
+    result->dibHeader = _read_DIB_HEADER(file);
 
 
     fclose(file);
