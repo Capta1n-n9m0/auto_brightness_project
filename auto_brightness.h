@@ -3,6 +3,8 @@
 
 #include "bmp_core.h"
 
+#define MAXIMUM_PIXEL_COLOR_VALUE 255.0
+
 BMP_FILE *auto_adjust_image(BMP_FILE *input);
 
 

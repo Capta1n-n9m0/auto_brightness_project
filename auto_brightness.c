@@ -1,6 +1,6 @@
 #include "auto_brightness.h"
-#include <stdlib.h>
-#include <string.h>
+#include <math.h>
+
 
 BMP_FILE *auto_adjust_image(BMP_FILE *input){
     BMP_FILE *res = copy_bmp_structure(input);
@@ -23,23 +23,25 @@ BMP_FILE *auto_adjust_image(BMP_FILE *input){
     r_max -= r_min;
     g_max -= g_min;
     b_max -= b_min;
-    printf("%d, %d, %d\n", r_min, g_min, b_min);
     for(int i = 0; i < width*height; i++){
         image[i].components.r -= r_min;
         image[i].components.g -= g_min;
         image[i].components.b -= b_min;
     }
     double r_ratio, g_ratio, b_ratio;
-    if(r_min != 0) r_ratio = r_max / r_min;
-    else r_ratio = r_max;
-    if(g_min != 0)g_ratio = g_max / g_min;
-    else g_ratio = g_max;
-    if(b_min != 0)b_ratio = b_max / b_min;
-    else b_ratio = b_max;
+    if(r_max != 0) r_ratio = MAXIMUM_PIXEL_COLOR_VALUE / r_max;
+    else r_ratio = NAN;
+    if(g_max != 0)g_ratio = MAXIMUM_PIXEL_COLOR_VALUE / g_max;
+    else g_ratio = NAN;
+    if(b_max != 0)b_ratio = MAXIMUM_PIXEL_COLOR_VALUE / b_max;
+    else b_ratio = NAN;
     for(int i = 0; i < width*height; i++){
-        image[i].components.r *= r_ratio;
-        image[i].components.g *= g_ratio;
-        image[i].components.b *= b_ratio;
+        if(r_ratio != NAN) image[i].components.r = (int)round(r_ratio * image[i].components.r);
+        else image[i].components.r = r_min;
+        if(g_ratio != NAN) image[i].components.g = (int)round(g_ratio * image[i].components.g);
+        else image[i].components.g = g_min;
+        if(g_ratio != NAN) image[i].components.b = (int)round(b_ratio * image[i].components.b);
+        else image[i].components.b = b_min;
     }
 
 

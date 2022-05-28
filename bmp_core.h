@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#define MAX_FILENAME_LENGTH 255
 extern char *self_executable;
 
 struct BMP_HEADER_{
@@ -53,6 +54,7 @@ typedef struct IMAGE_DATA_ IMAGE_DATA;
 typedef char COLOR_PROFILE;
 
 struct BMP_FILE_{
+    const char filename[MAX_FILENAME_LENGTH + 1];
     BMP_HEADER *bmpHeader;
     DIB_HEADER *dibHeader;
     BIT_MASKS *bitMasks;
