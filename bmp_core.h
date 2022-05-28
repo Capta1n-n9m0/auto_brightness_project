@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_FILENAME_LENGTH 255
 extern char *self_executable;
@@ -46,7 +47,7 @@ typedef union PIXEL_ PIXEL;
 
 struct IMAGE_DATA_{
     uint32_t width, height;
-    PIXEL **data;
+    PIXEL *data;
 } __attribute__((packed));
 typedef struct IMAGE_DATA_ IMAGE_DATA;
 
@@ -65,8 +66,8 @@ struct BMP_FILE_{
 
 typedef struct BMP_FILE_ BMP_FILE;
 
-BMP_FILE *read_bmp_file(const char *filename);
-int write_bmp_file(const char *filename, BMP_FILE *data);
+BMP_FILE *read_bmp_file(const char *filename, bool is_big_endian);
+int write_bmp_file(const char *filename, BMP_FILE *data, bool is_big_endian);
 BMP_FILE *copy_bmp_structure(const BMP_FILE *input);
 void free_bmp_structure(BMP_FILE *bmpFile);
 

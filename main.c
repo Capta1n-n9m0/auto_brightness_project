@@ -39,11 +39,11 @@ int main(int argc, char **argv) {
     if(is_output_redirected){
         fprintf(stderr, "%s: [ ERROR ] Output redirection is not implemented yet.\n", self_executable);
     }
-    int rez;
+    int argument;
     const char *options = "ho:e:";
     while(optind < argc){
-        if ((rez = getopt(argc, argv, options)) != -1) {
-            switch (rez) {
+        if ((argument = getopt(argc, argv, options)) != -1) {
+            switch (argument) {
                 case 'h':
                     help_flag = true;
                     break;
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
                     if(optarg[0] == 'l') is_color_in_big_endian = false;
                     break;
                 case '?':
-                    fprintf(stderr, "%s: [WARNING] Argument error occurred! Unknown argument %s at position %d!\n", self_executable, argv[optind], optind);
+                    fprintf(stderr, "%s: [WARNING] Argument error! Unknown argument %s at position %d!\n", self_executable, argv[optind-1], optind-1);
                     break;
             }
         } else{
@@ -65,13 +65,14 @@ int main(int argc, char **argv) {
     if(help_flag) print_help();
     if(input_file) printf("Input: %s\n", input_file);
     if(output_file) printf("Output: %s\n", output_file);
-//    BMP_FILE *f = read_bmp_file("image.bmp");
-//    BMP_FILE *copy = auto_adjust_image(f);
-//
-//    write_bmp_file("another_one.bmp", copy);
-//
-//    free_bmp_structure(copy);
-//    free_bmp_structure(f);
+    BMP_FILE *f = read_bmp_file("example.bmp", false);
+    BMP_FILE *copy = auto_adjust_image(f);
+
+    write_bmp_file("result.bmp", copy, false);
+
+    free_bmp_structure(copy);
+    free_bmp_structure(f);
+    fprintf(stderr, "%s: [  INFO ] If your image does not look right, or does not exist, try different endian option.\n", self_executable);
 #ifdef DEBUG
     fprintf(stderr, "\n%s: [ DEBUG ] Exiting with success!\n", self_executable);
 #endif

@@ -2,7 +2,7 @@
 
 static BMP_HEADER *_read_BMP_HEADER(FILE *f);
 static DIB_HEADER *_read_DIB_HEADER(FILE *f);
-static IMAGE_DATA *_read_IMAGE_DATA(FILE *f, uint32_t offset, uint32_t width, uint32_t height);
+static IMAGE_DATA *_read_IMAGE_DATA(FILE *f, uint32_t offset, uint32_t width, uint32_t height, bool is_big_endian);
 
 static BMP_HEADER *_read_BMP_HEADER(FILE *f){
     BMP_HEADER *res = calloc(1, sizeof(BMP_HEADER));
@@ -46,14 +46,22 @@ static DIB_HEADER *_read_DIB_HEADER(FILE *f){
 
     return res;
 }
-static IMAGE_DATA *_read_IMAGE_DATA(FILE *f, uint32_t offset, uint32_t width, uint32_t height){
+static IMAGE_DATA *_read_IMAGE_DATA(FILE *f, uint32_t offset, uint32_t width, uint32_t height, bool is_big_endian) {
     IMAGE_DATA *res = calloc(sizeof(IMAGE_DATA), 1);
     fseek(f, offset, SEEK_SET);
 
     res->width = width;
     res->height = height;
     res->data = calloc(sizeof(PIXEL), width*height);
-    fread(res->data, sizeof(PIXEL), width*height, f);
+    if(is_big_endian) fread(res->data, sizeof(PIXEL), width*height, f);
+    else{
+        for(int i = 0; i < width*height; i++){
+            fread(&res->data[i].bytes[3], sizeof(uint8_t), 1, f);
+            fread(&res->data[i].bytes[2], sizeof(uint8_t), 1, f);
+            fread(&res->data[i].bytes[1], sizeof(uint8_t), 1, f);
+            fread(&res->data[i].bytes[0], sizeof(uint8_t), 1, f);
+        }
+    }
 
 #ifdef DEBUG
     fprintf(stderr, "%s: [ DEBUG ] Reading image data\n", self_executable);
@@ -63,7 +71,7 @@ static IMAGE_DATA *_read_IMAGE_DATA(FILE *f, uint32_t offset, uint32_t width, ui
         PIXEL p = ((PIXEL *)res->data)[n];
         fprintf(stderr, "%d:{r:%d,g:%d,b:%d,a:%d}\n", n, p.components.r, p.components.g, p.components.b, p.components.a);
     }
-    fprintf(stderr, "\n...\n");
+    fprintf(stderr, "\n...\n\n");
     for(int i = 0; i < 5; i++){
         int n = width*height - i - 1;
         PIXEL p = ((PIXEL *)res->data)[n];
@@ -75,7 +83,7 @@ static IMAGE_DATA *_read_IMAGE_DATA(FILE *f, uint32_t offset, uint32_t width, ui
     return res;
 }
 
-BMP_FILE *read_bmp_file(const char *filename){
+BMP_FILE *read_bmp_file(const char *filename, bool is_big_endian) {
     BMP_FILE *result = calloc(1, sizeof(BMP_FILE));
     FILE *file = fopen(filename, "rb");
     if(file == NULL) {
@@ -84,23 +92,70 @@ BMP_FILE *read_bmp_file(const char *filename){
     }
     result->bmpHeader = _read_BMP_HEADER(file);
     result->dibHeader = _read_DIB_HEADER(file);
-    result->imageData = _read_IMAGE_DATA(file, result->bmpHeader->offset, result->dibHeader->width, result->dibHeader->height);
+    result->imageData = _read_IMAGE_DATA(file, result->bmpHeader->offset, result->dibHeader->width,
+                                         result->dibHeader->height, is_big_endian);
 
     fclose(file);
     return result;
 }
-int write_bmp_file(const char *filename, BMP_FILE *data){
+int write_bmp_file(const char *filename, BMP_FILE *data, bool is_big_endian) {
+#ifdef DEBUG
+    fprintf(stderr, "%s: [ DEBUG ] Writing %s file.\n", self_executable, filename);
+#endif
     FILE *f = fopen(filename, "wb");
     if(f == NULL){
         fprintf(stderr, "%s: [ FATAL ] Failed to open %s\n", self_executable, filename);
         exit(2);
     }
-    char zero = 0;
-    fwrite(data->bmpHeader, sizeof(BMP_HEADER), 1, f);
-    fwrite(data->dibHeader, sizeof(DIB_HEADER), 1, f);
-    fwrite(&zero, 1, data->bmpHeader->offset-(sizeof(BMP_HEADER) + sizeof(DIB_HEADER)), f);
-    fwrite(data->imageData->data, sizeof(PIXEL), data->dibHeader->height*data->dibHeader->width ,f);
+    uint8_t zero = 0;
+    uint32_t width = data->dibHeader->width;
+    uint32_t height = data->dibHeader->height;
 
+#ifdef DEBUG
+    fprintf(stderr, "%s: [ DEBUG ] Writing BMP header.\n", self_executable);
+#endif
+    fwrite(data->bmpHeader, sizeof(BMP_HEADER), 1, f);
+#ifdef DEBUG
+    fprintf(stderr, "%s: [ DEBUG ] Writing DIB header.\n", self_executable);
+#endif
+    fwrite(data->dibHeader, sizeof(DIB_HEADER), 1, f);
+#ifdef DEBUG
+    fprintf(stderr, "%s: [ DEBUG ] Writing padding.\n", self_executable);
+#endif
+    fwrite(&zero, sizeof(uint8_t), data->bmpHeader->offset-(sizeof(BMP_HEADER) + sizeof(DIB_HEADER)), f);
+
+#ifdef DEBUG
+    fprintf(stderr, "%s: [ DEBUG ] Writing pixel array in ", self_executable);
+    if(is_big_endian) fprintf(stderr, "big");
+    else fprintf(stderr, "little");
+    fprintf(stderr, " endian: \n");
+#endif
+    if(is_big_endian) fwrite(data->imageData->data, sizeof(PIXEL), width*height ,f);
+    else{
+        bool dots_condition = true;
+        for(int i = 0; i < width*height; i++){
+#ifdef DEBUG
+            if(i < 5 || i >= width*height-5){
+                uint8_t r = data->imageData->data[i].components.r;
+                uint8_t g = data->imageData->data[i].components.g;
+                uint8_t b = data->imageData->data[i].components.b;
+                uint8_t a = data->imageData->data[i].components.a;
+                fprintf(stderr, "%d:{r:%d,g:%d,b:%d,a:%d}\n", i, r, g, b, a);
+            } else{
+                if(dots_condition) fprintf(stderr, "\n...\n");
+                dots_condition = false;
+            }
+#endif
+            fwrite(&data->imageData->data[i].bytes[3], sizeof(uint8_t), 1, f);
+            fwrite(&data->imageData->data[i].bytes[2], sizeof(uint8_t), 1, f);
+            fwrite(&data->imageData->data[i].bytes[1], sizeof(uint8_t), 1, f);
+            fwrite(&data->imageData->data[i].bytes[0], sizeof(uint8_t), 1, f);
+        }
+    }
+    uint32_t file_length = (data->dibHeader->width * data->dibHeader->height + data->bmpHeader->offset);
+    uint8_t padding = 0;
+    if(file_length % 4) padding = 4 - (file_length%4);
+    if(padding) fwrite(&zero, sizeof(uint8_t), padding, f);
     fclose(f);
     return 0;
 }
