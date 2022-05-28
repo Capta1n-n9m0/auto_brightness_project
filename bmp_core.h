@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
+extern char *self_executable;
+
 struct BMP_HEADER_{
     uint8_t signature[2];
     uint32_t size;

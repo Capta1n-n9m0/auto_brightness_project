@@ -10,16 +10,16 @@ static BMP_HEADER *_read_BMP_HEADER(FILE *f){
 
     fread(res, sizeof(BMP_HEADER), 1, f);
 #ifdef DEBUG
-    printf("Reading BMP header\n");
-    printf("Signature: %c%c\n", res->signature[0], res->signature[1]);
-    printf("Size: %d\n", res->size);
-    printf("Application bytes: 0x");
+    fprintf(stderr, "%s: [ DEBUG ] Reading BMP header\n", self_executable);
+    fprintf(stderr, "%s: [ DEBUG ] Signature: %c%c\n", self_executable, res->signature[0], res->signature[1]);
+    fprintf(stderr, "%s: [ DEBUG ] Size: %d\n", self_executable, res->size);
+    fprintf(stderr, "%s: [ DEBUG ] Application bytes: 0x", self_executable);
     for(int i = 0; i < 4; i++){
-        printf("%02X", res->application_reserved[i]);
+        fprintf(stderr, "%02X", res->application_reserved[i]);
     }
-    printf("\n");
-    printf("Offset: %d\n", res->offset);
-    printf("\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "%s: [ DEBUG ] Offset: %d\n", self_executable, res->offset);
+    fprintf(stderr, "\n");
 #endif
 
     return res;
@@ -30,18 +30,18 @@ static DIB_HEADER *_read_DIB_HEADER(FILE *f){
 
     fread(res, sizeof(DIB_HEADER), 1, f);
 #ifdef DEBUG
-    printf("Reading DIB header\n");
-    printf("Header size: %d\n", res->header_size);
-    printf("Image width: %d\n", res->width);
-    printf("Image height: %d\n", res->height);
-    printf("Color planes: %d\n", res->n_color_planes);
-    printf("Bits per pixel: %d\n", res->bits_per_pixels);
-    printf("Other bytes: 0x");
+    fprintf(stderr, "%s: [ DEBUG ] Reading DIB header\n", self_executable);
+    fprintf(stderr, "%s: [ DEBUG ] Header size: %d\n", self_executable, res->header_size);
+    fprintf(stderr, "%s: [ DEBUG ] Image width: %d\n", self_executable, res->width);
+    fprintf(stderr, "%s: [ DEBUG ] Image height: %d\n", self_executable, res->height);
+    fprintf(stderr, "%s: [ DEBUG ] Color planes: %d\n", self_executable, res->n_color_planes);
+    fprintf(stderr, "%s: [ DEBUG ] Bits per pixel: %d\n", self_executable, res->bits_per_pixels);
+    fprintf(stderr, "%s: [ DEBUG ] Other bytes: 0x", self_executable);
     for(int i = 0; i < 24; i++){
         if(i%4 == 0 && i != 0) printf(" ");
-        printf("%02X", res->not_important[i]);
+        fprintf(stderr, "%02X", res->not_important[i]);
     }
-    printf("\n\n");
+    fprintf(stderr, "\n\n");
 #endif
 
     return res;
@@ -56,20 +56,20 @@ static IMAGE_DATA *_read_IMAGE_DATA(FILE *f, uint32_t offset, uint32_t width, ui
     fread(res->data, sizeof(PIXEL), width*height, f);
 
 #ifdef DEBUG
-    printf("Reading image data\n");
-    printf("Pixels:\n");
+    fprintf(stderr, "%s: [ DEBUG ] Reading image data\n", self_executable);
+    fprintf(stderr, "%s: [ DEBUG ] Pixels:\n", self_executable);
     for(int i = 0; i < 5; i++){
         int n = i;
         PIXEL p = ((PIXEL *)res->data)[n];
-        printf("%d:{r:%d,g:%d,b:%d,a:%d}\n", n, p.components.r, p.components.g, p.components.b, p.components.a);
+        fprintf(stderr, "%d:{r:%d,g:%d,b:%d,a:%d}\n", n, p.components.r, p.components.g, p.components.b, p.components.a);
     }
-    printf("\n...\n");
+    fprintf(stderr, "\n...\n");
     for(int i = 0; i < 5; i++){
         int n = width*height - i - 1;
         PIXEL p = ((PIXEL *)res->data)[n];
-        printf("%d:{r:%d,g:%d,b:%d,a:%d}\n", n, p.components.r, p.components.g, p.components.b, p.components.a);
+        fprintf(stderr, "%d:{r:%d,g:%d,b:%d,a:%d}\n", n, p.components.r, p.components.g, p.components.b, p.components.a);
     }
-    printf("\n");
+    fprintf(stderr, "\n");
 #endif
 
     return res;
@@ -79,7 +79,7 @@ BMP_FILE *read_bmp_file(const char *filename){
     BMP_FILE *result = calloc(1, sizeof(BMP_FILE));
     FILE *file = fopen(filename, "rb");
     if(file == NULL) {
-        fprintf(stderr, "Failed to open %s\n", filename);
+        fprintf(stderr, "%s: [ FATAL ] Failed to open %s\n", self_executable, filename);
         exit(2);
     }
     result->bmpHeader = _read_BMP_HEADER(file);
@@ -92,7 +92,7 @@ BMP_FILE *read_bmp_file(const char *filename){
 int write_bmp_file(const char *filename, BMP_FILE *data){
     FILE *f = fopen(filename, "wb");
     if(f == NULL){
-        fprintf(stderr, "Failed to open %s\n", filename);
+        fprintf(stderr, "%s: [ FATAL ] Failed to open %s\n", self_executable, filename);
         exit(2);
     }
     char zero = 0;
