@@ -55,7 +55,7 @@ typedef struct IMAGE_DATA_ IMAGE_DATA;
 typedef char COLOR_PROFILE;
 
 struct BMP_FILE_{
-    const char filename[MAX_FILENAME_LENGTH + 1];
+    char *filename;
     BMP_HEADER *bmpHeader;
     DIB_HEADER *dibHeader;
     BIT_MASKS *bitMasks;
@@ -66,8 +66,8 @@ struct BMP_FILE_{
 
 typedef struct BMP_FILE_ BMP_FILE;
 
-BMP_FILE *read_bmp_file(const char *filename, bool is_big_endian);
-int write_bmp_file(const char *filename, BMP_FILE *data, bool is_big_endian);
+BMP_FILE *read_bmp_file(FILE *file, bool is_big_endian);
+int write_bmp_file(FILE *file, BMP_FILE *data, bool is_big_endian);
 BMP_FILE *copy_bmp_structure(const BMP_FILE *input);
 void free_bmp_structure(BMP_FILE *bmpFile);
 
