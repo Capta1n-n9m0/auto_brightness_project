@@ -40,7 +40,6 @@ struct PIXEL__{
 } __attribute__((packed));
 union PIXEL_{
     struct PIXEL__ components;
-    uint32_t value;
     uint8_t bytes[4];
 } __attribute__((packed));
 typedef union PIXEL_ PIXEL;
@@ -50,6 +49,13 @@ struct IMAGE_DATA_{
     PIXEL *data;
 } __attribute__((packed));
 typedef struct IMAGE_DATA_ IMAGE_DATA;
+
+struct IMAGE_DATA_NEW_{
+    uint32_t width, height;
+    uint8_t bits_per_pixel;
+    uint8_t *data;
+} __attribute__((packed));
+typedef struct IMAGE_DATA_NEW_ IMAGE_DATA_NEW;
 
 /// not implemented
 typedef char COLOR_PROFILE;
@@ -63,8 +69,18 @@ struct BMP_FILE_{
     IMAGE_DATA *imageData;
     COLOR_PROFILE *colorProfile;
 };
+struct BMP_FILE_NEW_{
+    char *filename;
+    BMP_HEADER *bmpHeader;
+    DIB_HEADER *dibHeader;
+    BIT_MASKS *bitMasks;
+    COLOR_TABLE *colorTable;
+    IMAGE_DATA_NEW *imageData;
+    COLOR_PROFILE *colorProfile;
+};
 
 typedef struct BMP_FILE_ BMP_FILE;
+typedef struct BMP_FILE_NEW_ BMP_FILE_NEW;
 
 BMP_FILE *read_bmp_file(FILE *file, bool is_big_endian);
 int write_bmp_file(FILE *file, BMP_FILE *data, bool is_big_endian);
