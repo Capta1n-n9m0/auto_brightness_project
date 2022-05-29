@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
+\usepackage[a4paper, total={7in, 10in}]{geometry}
 
 \usepackage{graphicx}
 \graphicspath{{pictures/}}
@@ -31,10 +32,10 @@ What should we do? Let's say we have image \textbf{\textit{A}} with spread from 
 Due to the fact that in reality the picture consists of three Red Green Blue(RGB) colors, we must do the above manipulations with each of the colors in the image.
 
 \section{Code Explanation}
-\subsection{bmp\_core.c}
+\subsection{bmp\_core.c and bmp\_core.h}
 
 We have 4 main structures BMP\_HEADER DIB\_HEADER IMAGE\_DATA BMP\_FILE. Later we will analyze them in more detail. But first, I want to note the structures that we declare, but do not create in our project (because we believe that they are not specified in our Technical Task).
-\\
+
 \subsubsection{Declare, but not used}
 
 If less than 8 bits are specified for the color, then we will be forced to use COLOR\_TABLE, but it is not needed in our task.
@@ -48,7 +49,6 @@ COLOR\_PROFILE is a set of data that characterizes a color input or output devic
 \colorbox{black!80}{\textcolor{orange!65}{typedef char} \textcolor{white}{COLOR\_TABLE\textcolor{orange!65}{;}}}
 \\
 \colorbox{black!80}{\textcolor{orange!65}{typedef char} \textcolor{white}{COLOR\_PROFILE\textcolor{orange!65}{;}}}
-\\[1\baselineskip]
 
 \subsubsection{BMP\_HEADER}
 BMP\_HEADER - It stores some information about our file, specifically the first 2 bytes, then 4 bytes, the next 4 bytes are reserved for the application and the last 4 bytes indicate image offsets.
@@ -66,4 +66,78 @@ IMAGE\_DATA is a structure that stores the height and width of the image.
 BMP\_FILE - a structure that stores all the structures, the root, the head of our project.
 \\[1\baselineskip]
 \colorbox{black!80}{\textcolor{orange!65}{struct} \textcolor{white}{BMP\_FILE}\textcolor{orange!65}{;}}
+\subsubsection{*\_read\_bmp\_file}
+This function takes the open file handler that we open in main, and then we pass the file to the following functions: read\_DIP\_HEADER, read\_IMAGE\_DATA, read\_BMP\_HEADER.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{white}{BMP\_FILE *} \textcolor{yellow!85}{read\_bmp\_file}\textcolor{white}{(FILE *file}\textcolor{orange!65}{, }\textcolor{green!65}{bool }\textcolor{white}{is\_big\_endian)}\textcolor{orange!65}{;}}
+\subsubsection{read\_BMP\_HEADER, read\_DIP\_HEADER}
+Each of these function read a constant-sized header and simply return what they read. Size BMP is 14, when DIP is 56 bytes.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{orange!65}{static }\textcolor{white}{BMP\_FILE *} \textcolor{yellow!85}{read\_BMP\_HEADER}\textcolor{white}{(FILE *f)}\textcolor{orange!65}{;}}
+\\
+\colorbox{black!80}{\textcolor{orange!65}{static }\textcolor{white}{BMP\_FILE *} \textcolor{yellow!85}{read\_DIB\_HEADER}\textcolor{white}{(FILE *f)}\textcolor{orange!65}{;}}
+\subsubsection{*\_read\_IMAGE\_DATA}
+This function can read pixels stored in both, little and big endian. Their order may be RGBA or ABGR. And each of these methods must be read separately. Here we consider the pixels themselves with which we manipulate.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{orange!65}{static }\textcolor{white}{IMAGE\_DATA *} \textcolor{yellow!85}{\_read\_IMAGE\_DATA}\textcolor{white}{(FILE *f}\textcolor{orange!65}{, }\textcolor{white}{uint32\_t offset}\textcolor{orange!65}{, }\textcolor{white}{uint32\_t width}\textcolor{orange!65}{, }\textcolor{white}{uint32\_t height}\textcolor{green!65}{bool }\textcolor{white}{is\_big\_endian)}\textcolor{orange!65}{;}}
+\subsubsection{*copy\_bmp\_structure}
+The function creates a copy of the bmp structure.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{white}{BMP\_FILE *} \textcolor{yellow!85}{copy\_bmp\_structure}\textcolor{white}{(}\textcolor{orange!65}{const }\textcolor{white}{BMP\_FILE *input)}\textcolor{orange!65}{;}}
+\subsubsection{free\_bmp\_structure}
+Since we are working with dynamic memory, we must allocate memory and deallocate memory. This is the function that releases it.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{orange!65}{void} \textcolor{yellow!85}{free\_bmp\_structure}\textcolor{white}{(BMP\_FILE *bmpFile)}\textcolor{orange!65}{;}}
+\subsection{auto\_brightness.c}
+In this file, we have only one function that implements the logic described above. We apply a rule to increase the contrast and brightness of the image.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{white}{BMP\_FILE *} \textcolor{yellow!85}{auto\_adjust\_image}\textcolor{white}{(}\textcolor{white}{BMP\_FILE *input)}\textcolor{orange!65}{;}}
+\subsection{main.c}
+In main, we process the input arguments. We also do detection, processing, input and output redirection. We also have help for the user, a brief description of the use of the program.
+\section{Specification}
+Our source codes should be compiled with C23 standard. We do not guaranty anything if compiled with any other standard.
+\\
+Our project only works with 32-bit color .bmp files. We do not guaranty anything if ran with any other file.
+\section{User Manual}
+Our program is designed to equalize the contrast and brightness in any picture. The only thing you need is to put the picture in a folder and specify its correct name.
+\subsection{Installation}
+To install our program you should follow these simple steps:
+\begin{itemize}
+\item Download files from download zip.
+\item Make sure you have the CMAKE compiler installed on your computer.
+\item Run following  commands to build the project:
+\begin{enumerate}
+\item \colorbox{gray!15}{cd auto\_brightness\_project}
+\item \colorbox{gray!15}{mkdir build}
+\item \colorbox{gray!15}{cd build}
+\item \colorbox{gray!15}{cmake ../}
+\item \colorbox{gray!15}{cmake --build .}
+\item\colorbox{gray!15}{ mv auto\_brightness\_project ../}
+\end{enumerate}
+\end{itemize}
+\subsection{Execution}
+To run our code you should get back to working directory and run the executable. To run it properly you must provide input file or redirect input.
+\begin{itemize}
+\item Direct execution: \colorbox{gray!15}{auto\_brightness\_project image.bmp -o result.bmp}
+\item Implicit output: \colorbox{gray!15}{auto\_brightness\_project image.bmp}
+\item I/O redirection: \colorbox{gray!15}{auto\_brightness\_project $<$ image.bmp $>$ result.bmp}
+\item Defining endiannes: \colorbox{gray!15}{auto\_brightness\_project image.bmp -e l -o result.bmp}
+\end{itemize}
+You can mix execution options with each other:
+\begin{itemize}
+\item Direct input with output redireciton: \colorbox{gray!15}{auto\_brightness\_project image.bmp $>$ result.bmp}
+\item Implicit output with input redirection: \colorbox{gray!15}{auto\_brightness\_project $<$ image.bmp}
+\\ in this case we will have result with name \colorbox{gray!15}{stdin.xxxxxxxx.bmp}
+
+\end{itemize}
+\section{Demonstration}
+Here is the picture we had:
+\\[1\baselineskip]
+\includegraphics[scale=0.25]{image}
+\\[1\baselineskip]
+And here's what we got!
+\\[1\baselineskip]
+\includegraphics[scale=0.25]{result}
+
+
 \end{document}
