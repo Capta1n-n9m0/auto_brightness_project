@@ -8,3 +8,4 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif ()
 
 add_executable(auto_brightness_project main.c bmp_core.c bmp_core.h auto_brightness.c auto_brightness.h)
+target_link_libraries(auto_brightness_project m)
