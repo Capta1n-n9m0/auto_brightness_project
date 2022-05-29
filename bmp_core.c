@@ -45,7 +45,7 @@ static DIB_HEADER *_read_DIB_HEADER(FILE *f){
     fprintf(stderr, "%s: [ DEBUG ] Bits per pixel: %d\n", self_executable, res->bits_per_pixels);
     fprintf(stderr, "%s: [ DEBUG ] Other bytes: 0x", self_executable);
     for(int i = 0; i < 24; i++){
-        if(i%4 == 0 && i != 0) printf(" ");
+        if(i%4 == 0 && i != 0) fprintf(stderr, " ");
         fprintf(stderr, "%02X", res->not_important[i]);
     }
     fprintf(stderr, "\n\n");
