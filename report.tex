@@ -1,0 +1,69 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\graphicspath{{pictures/}}
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
+
+\usepackage{xcolor}
+\usepackage{colortbl}
+
+\title{BMP File Manipulation}
+\author{Abbas Aliyev, Aziz Salimli }
+\date{May 2022}
+
+\begin{document}
+
+\maketitle
+
+\section{Objective}
+
+Our main task is to process images in \textbf{bmp} format.
+\\[1\baselineskip]
+Images in \textbf{bmp} format are saved every pixel by expansion, that is, you can access every pixel. And our task is to automatically adjust the image for contrast and adjust the contrast.
+\\[1\baselineskip]
+\textit{The brightness} of an image is a measure of how strongly a color appears from black. Brightness ranges from 0 to 255. The higher this value, the brighter the pixel. And in order to change the brightness of the image, we must raise the brightness of each pixel.
+\\[1\baselineskip]
+\textit{Contrast} is the difference in brightness between different parts of an image. Contrast also takes values from 0 to 255. For example, if an image has a spread of 130 to 160, this image is considered to be an image with poor contrast.
+\\[1\baselineskip]
+What should we do? Let's say we have image \textbf{\textit{A}} with spread from $\forall$ x to $\forall$ y$\rightarrow$ \textbf{\textit{A}}  = $[x,y  \mid x, y \in A,x \neq 0 , x \neq y, x<y]$, we must subtract the arrival of x from everyone. Scatter identification: $[0,x-y]$. After that we have to $255/(x-y)$. And the resulting answer is multiplied by each element in $[0,x-y]$. After this is done, the pixel values of the image will range from 0 to 255.
+\\[1\baselineskip]
+Due to the fact that in reality the picture consists of three Red Green Blue(RGB) colors, we must do the above manipulations with each of the colors in the image.
+
+\section{Code Explanation}
+\subsection{bmp\_core.c}
+
+We have 4 main structures BMP\_HEADER DIB\_HEADER IMAGE\_DATA BMP\_FILE. Later we will analyze them in more detail. But first, I want to note the structures that we declare, but do not create in our project (because we believe that they are not specified in our Technical Task).
+\\
+\subsubsection{Declare, but not used}
+
+If less than 8 bits are specified for the color, then we will be forced to use COLOR\_TABLE, but it is not needed in our task.
+\\
+BIT\_MASK is defined data that is used for masking - selecting individual bits or fields from multiple bits from a binary string or number.
+\\
+COLOR\_PROFILE is a set of data that characterizes a color input or output device or color space according to standards promulgated by the International Color Consortium.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{orange!65}{typedef char} \textcolor{white}{BIT\_MASKS\textcolor{orange!65}{;}}}
+\\
+\colorbox{black!80}{\textcolor{orange!65}{typedef char} \textcolor{white}{COLOR\_TABLE\textcolor{orange!65}{;}}}
+\\
+\colorbox{black!80}{\textcolor{orange!65}{typedef char} \textcolor{white}{COLOR\_PROFILE\textcolor{orange!65}{;}}}
+\\[1\baselineskip]
+
+\subsubsection{BMP\_HEADER}
+BMP\_HEADER - It stores some information about our file, specifically the first 2 bytes, then 4 bytes, the next 4 bytes are reserved for the application and the last 4 bytes indicate image offsets.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{orange!65}{struct} \textcolor{white}{BMP\_HEADER\_}\textcolor{orange!65}{;}}
+\subsubsection{DIB\_HEADER}
+DIB\_HEADER - stores information about 4 bytes header size, 4 bytes for image width, 4 for height, 2 for colour planes, 2 for pixels, and the remaining 24 are not important.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{orange!65}{struct} \textcolor{white}{DIB\_HEADER\_}\textcolor{orange!65}{;}}
+\subsubsection{IMAGE\_DATA}
+IMAGE\_DATA is a structure that stores the height and width of the image.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{orange!65}{struct} \textcolor{white}{IMAGE\_DATA\_}\textcolor{orange!65}{;}}
+\subsubsection{BMP\_FILE}
+BMP\_FILE - a structure that stores all the structures, the root, the head of our project.
+\\[1\baselineskip]
+\colorbox{black!80}{\textcolor{orange!65}{struct} \textcolor{white}{BMP\_FILE}\textcolor{orange!65}{;}}
+\end{document}
