@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
         fclose(input_file);
     }
     else {
-        input_bmp->filename = get_dynamic_string("stdin");
+        input_bmp->filename = get_dynamic_string("stdin\0");
     }
     // </Input handling + redirection>
 
@@ -117,14 +117,14 @@ int main(int argc, char **argv) {
     // <Output handling + redirection>
     if (is_output_redirected) {
         output_file = stdout;
-        output_bmp->filename = get_dynamic_string("stdout");
+        output_bmp->filename = get_dynamic_string("stdout\0");
     } else {
         if (output_filename) {
             output_file = fopen(output_filename, "wb");
         } else {
-            output_filename = calloc(strlen(input_filename) + 1 + 1 + 8 + 4, sizeof(char));
+            output_filename = calloc(strlen(input_bmp->filename) + 1 + 1 + 8 + 4, sizeof(char));
             char *random = get_random_string(8);
-            sprintf(output_filename, "%s.%s.bmp", input_filename, random);
+            sprintf(output_filename, "%s.%s.bmp", input_bmp->filename, random);
             free(random);
             fprintf(stderr, "%s: [WARNING] No output file was provided, so defaulting to \"%s\"\n", self_executable,
                     output_filename);
